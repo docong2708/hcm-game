@@ -7,8 +7,8 @@ import mainCharacterImg from '../assets/maincharacter_transparent.png'
 import nguoiBanHangImg from '../assets/nguoibanhang_transparent.png'
 import sinhVienNamImg from '../assets/sinhviennam_transparent.png'
 import { correctValues, wrongValues } from '../data/values'
-import ChoiceModal from './ChoiceModal'
 import DialogBox from './DialogBox'
+import PuzzleModal from './PuzzleModal'
 
 const PLAYER_SIZE = 42
 const ORB_SIZE = 34
@@ -58,12 +58,10 @@ function createGameValues() {
   return [
     ...correctValues.map((value, index) => ({
       ...value,
-      type: 'correct',
       ...shuffledPositions[index],
     })),
     ...wrongValues.map((value, index) => ({
       ...value,
-      type: 'wrong',
       ...shuffledPositions[correctValues.length + index],
     })),
   ]
@@ -228,27 +226,26 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
     setTimeout(() => setPopupMessage(''), 1800)
   }
 
-  function chooseOrb() {
+  function solvePuzzle(value) {
     if (!activeOrb) {
       return
     }
 
-    if (activeOrb.type === 'wrong') {
-      onWrongChoice()
-      showPopup('Một giá trị lệch lạc đã được chấp nhận.')
-      setActiveOrb(null)
-      return
-    }
-
     setOrbs((currentOrbs) =>
-      currentOrbs.filter((orb) => orb.id !== activeOrb.id),
+      currentOrbs.filter((orb) => orb.id !== value.id),
     )
-    onCorrectChoice(activeOrb)
+    onCorrectChoice(value)
     showPopup('Niềm tin xã hội đã được khôi phục một phần...')
     setActiveOrb(null)
   }
 
-  function skipOrb() {
+  function failPuzzle() {
+    onWrongChoice()
+    showPopup('Một giá trị lệch lạc đã được giải mã.')
+    setActiveOrb(null)
+  }
+
+  function closePuzzle() {
     if (!activeOrb) {
       return
     }
@@ -323,7 +320,7 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
           >
             {isNearbyOrb && (
               <span className="orb-interact-prompt">
-                Nhấn E để tương tác
+                Nhấn E để khám phá
               </span>
             )}
           </div>
@@ -342,7 +339,12 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
       {popupMessage && <div className="collect-popup">{popupMessage}</div>}
       {dialogNpc && <DialogBox npcName={dialogNpc.name} message={dialogNpc.hint} />}
       {activeOrb && (
-        <ChoiceModal orb={activeOrb} onChoose={chooseOrb} onSkip={skipOrb} />
+        <PuzzleModal
+          value={activeOrb}
+          onSolved={solvePuzzle}
+          onFail={failPuzzle}
+          onClose={closePuzzle}
+        />
       )}
     </section>
   )
