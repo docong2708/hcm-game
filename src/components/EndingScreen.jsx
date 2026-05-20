@@ -1,22 +1,34 @@
 import { useEffect, useState } from 'react'
 
-const ENDING_LINES = [
-  'Tư tưởng Hồ Chí Minh không thuộc về quá khứ.',
-  'Nó quyết định tương lai.',
-  'Một xã hội có giá trị là một xã hội có tương lai.',
-]
+const ENDINGS = {
+  good: {
+    kicker: 'Giá trị được khôi phục',
+    lines: [
+      'Không một xã hội nào có thể tồn tại',
+      'nếu đánh mất giá trị con người.',
+    ],
+  },
+  bad: {
+    kicker: 'Hậu quả của vô cảm',
+    lines: [
+      'Bạn đã lựa chọn sai.',
+      'Xã hội tiếp tục chìm trong vô cảm.',
+    ],
+  },
+}
 
-function EndingScreen({ onRestart }) {
+function EndingScreen({ endingType = 'good', onRestart }) {
+  const ending = ENDINGS[endingType] || ENDINGS.good
   const [lineIndex, setLineIndex] = useState(0)
   const [typedText, setTypedText] = useState('')
   const [completedLines, setCompletedLines] = useState([])
 
   useEffect(() => {
-    if (lineIndex >= ENDING_LINES.length) {
+    if (lineIndex >= ending.lines.length) {
       return undefined
     }
 
-    const currentLine = ENDING_LINES[lineIndex]
+    const currentLine = ending.lines[lineIndex]
 
     if (typedText.length < currentLine.length) {
       const typingTimer = setTimeout(() => {
@@ -33,14 +45,14 @@ function EndingScreen({ onRestart }) {
     }, 700)
 
     return () => clearTimeout(nextLineTimer)
-  }, [lineIndex, typedText])
+  }, [lineIndex, typedText, ending.lines])
 
   return (
-    <main className="ending-screen">
+    <main className={`ending-screen ${endingType}`}>
       <div className="ending-sunrise" />
 
       <section className="ending-cinematic" aria-label="Ending cinematic">
-        <p className="ending-kicker">Niềm tin xã hội được khôi phục</p>
+        <p className="ending-kicker">{ending.kicker}</p>
 
         <div className="ending-lines">
           {completedLines.map((line) => (
@@ -49,7 +61,7 @@ function EndingScreen({ onRestart }) {
             </p>
           ))}
 
-          {lineIndex < ENDING_LINES.length && (
+          {lineIndex < ending.lines.length && (
             <p className="ending-line typing">
               {typedText}
               <span className="typing-cursor" />

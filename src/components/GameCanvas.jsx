@@ -15,6 +15,7 @@ const ORB_SIZE = 34
 const NPC_SIZE = 40
 const PLAYER_SPEED = 4
 const NPC_DIALOG_DISTANCE = 92
+const ORB_INTERACT_DISTANCE = 78
 
 const START_POSITION = {
   x: window.innerWidth / 2 - PLAYER_SIZE / 2,
@@ -37,6 +38,36 @@ const WRONG_VALUE_POSITIONS = [
   { x: 62, y: 84 },
   { x: 51, y: 50 },
 ]
+
+const ALL_ORB_POSITIONS = [...CORRECT_VALUE_POSITIONS, ...WRONG_VALUE_POSITIONS]
+
+function shuffleArray(items) {
+  const array = items.slice()
+  for (let i = array.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1))
+    const temp = array[i]
+    array[i] = array[j]
+    array[j] = temp
+  }
+  return array
+}
+
+function createGameValues() {
+  const shuffledPositions = shuffleArray(ALL_ORB_POSITIONS)
+
+  return [
+    ...correctValues.map((value, index) => ({
+      ...value,
+      type: 'correct',
+      ...shuffledPositions[index],
+    })),
+    ...wrongValues.map((value, index) => ({
+      ...value,
+      type: 'wrong',
+      ...shuffledPositions[correctValues.length + index],
+    })),
+  ]
+}
 
 const NPC_LAYOUT = [
   { name: 'Cô giáo Lan', image: coGiaoLanImg, x: 30, y: 24 },
@@ -99,8 +130,9 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
   const skippedOrbIdRef = useRef(null)
 
   const [player, setPlayer] = useState(START_POSITION)
-  const [orbs, setOrbs] = useState(GAME_VALUES)
+  const [orbs, setOrbs] = useState(() => createGameValues())
   const [nearbyNpc, setNearbyNpc] = useState(null)
+  const [nearbyOrb, setNearbyOrb] = useState(null)
   const [dialogNpc, setDialogNpc] = useState(null)
   const [activeOrb, setActiveOrb] = useState(null)
   const [popupMessage, setPopupMessage] = useState('')
@@ -115,7 +147,11 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
 
       if (key === 'e' && !ePressedRef.current) {
         ePressedRef.current = true
-        setDialogNpc((currentNpc) => (currentNpc ? null : nearbyNpc))
+        if (nearbyOrb && !activeOrb) {
+          setActiveOrb(nearbyOrb)
+        } else {
+          setDialogNpc((currentNpc) => (currentNpc ? null : nearbyNpc))
+        }
       }
     }
 
@@ -135,7 +171,7 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('keyup', handleKeyUp)
     }
-  }, [nearbyNpc])
+  }, [nearbyOrb, nearbyNpc, activeOrb])
 
   useEffect(() => {
     function movePlayer() {
@@ -168,21 +204,15 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
         setDialogNpc(null)
       }
 
-      const collidingOrb = orbs.find((orb) => {
+      const nearbyOrbCandidate = orbs.find((orb) => {
         const orbPosition = getMapPosition(orb, ORB_SIZE)
-        return isColliding(nextPlayer, orbPosition)
+        return getDistance(nextPlayer, orbPosition) < ORB_INTERACT_DISTANCE
       })
 
-      if (!collidingOrb) {
-        skippedOrbIdRef.current = null
-      }
+      setNearbyOrb(nearbyOrbCandidate ?? null)
 
-      if (
-        collidingOrb &&
-        !activeOrb &&
-        skippedOrbIdRef.current !== collidingOrb.id
-      ) {
-        setActiveOrb(collidingOrb)
+      if (!nearbyOrbCandidate) {
+        skippedOrbIdRef.current = null
       }
 
       frameRef.current = requestAnimationFrame(movePlayer)
@@ -205,6 +235,8 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
 
     if (activeOrb.type === 'wrong') {
       onWrongChoice()
+      showPopup('Một giá trị lệch lạc đã được chấp nhận.')
+      setActiveOrb(null)
       return
     }
 
@@ -212,7 +244,7 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
       currentOrbs.filter((orb) => orb.id !== activeOrb.id),
     )
     onCorrectChoice(activeOrb)
-    showPopup(`Đã khôi phục: ${activeOrb.title}`)
+    showPopup('Niềm tin xã hội đã được khôi phục một phần...')
     setActiveOrb(null)
   }
 
@@ -281,7 +313,7 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
 
       {orbs.map((orb) => {
         const orbPosition = getMapPosition(orb, ORB_SIZE)
-        const isRestored = restoredValueIds.includes(orb.id)
+        const isNearbyOrb = nearbyOrb?.id === orb.id
 
         return (
           <div
@@ -289,7 +321,11 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
             key={orb.id}
             style={{ left: orbPosition.x, top: orbPosition.y }}
           >
-            <span>{isRestored ? `${orb.title} ✓` : orb.title}</span>
+            {isNearbyOrb && (
+              <span className="orb-interact-prompt">
+                Nhấn E để tương tác
+              </span>
+            )}
           </div>
         )
       })}
