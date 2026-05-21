@@ -81,6 +81,7 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
   const [dialogNpc, setDialogNpc] = useState(null)
   const [activePuzzleNpc, setActivePuzzleNpc] = useState(null)
   const [popupMessage, setPopupMessage] = useState('')
+  const [lightPulseKey, setLightPulseKey] = useState(0)
 
   const hopeLevel = Math.min(4, Math.floor(hope / 25))
   const npcMood = hope >= 80 ? 'hopeful' : hope > 0 ? 'warming' : 'sad'
@@ -225,6 +226,7 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
 
   function solvePuzzle(value) {
     onCorrectChoice(value)
+    setLightPulseKey((currentKey) => currentKey + 1)
     showPopup(`Bạn đã hiểu được giá trị: ${value.valueName}`)
     setActivePuzzleNpc(null)
   }
@@ -249,6 +251,7 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
       style={{ backgroundImage: `url(${backgroundImage})` }}
       aria-label="Bản đồ thành phố dystopia"
     >
+      <div className="answer-light-pulse" key={lightPulseKey} />
       <div className="film-grain" />
       <div className="dust-layer" />
       <div
