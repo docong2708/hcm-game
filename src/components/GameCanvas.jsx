@@ -5,6 +5,7 @@ import mainCharacterLeftImg from '../assets/maincharacter_left_transparent.png'
 import mainCharacterRightImg from '../assets/maincharacter_right_transparent.png'
 import { correctValues } from '../data/values'
 import DialogBox from './DialogBox'
+import MobileControls from './MobileControls'
 import PuzzleModal from './PuzzleModal'
 
 const PLAYER_SIZE = 42
@@ -76,9 +77,19 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
   const directionRef = useRef('front')
   const frameRef = useRef(null)
   const ePressedRef = useRef(false)
+  const mobileInputRef = useRef({
+    left: false,
+    right: false,
+    jump: false,
+  })
 
   const [player, setPlayer] = useState(() => createStartPosition())
   const [direction, setDirection] = useState('front')
+  const [mobileInput, setMobileInput] = useState({
+    left: false,
+    right: false,
+    jump: false,
+  })
   const [nearbyNpc, setNearbyNpc] = useState(null)
   const [dialogNpc, setDialogNpc] = useState(null)
   const [activePuzzleNpc, setActivePuzzleNpc] = useState(null)
@@ -126,6 +137,7 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
   useEffect(() => {
     function movePlayer() {
       const keys = keysRef.current
+      const touchInput = mobileInputRef.current
       const currentPlayer = playerRef.current
       const groundY = getGroundY()
       let velocityX = 0
@@ -133,8 +145,8 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
       let nextDirection = directionRef.current
 
       if (!activePuzzleNpc && !dialogNpc) {
-        const movingLeft = keys.a || keys.arrowleft
-        const movingRight = keys.d || keys.arrowright
+        const movingLeft = keys.a || keys.arrowleft || touchInput.left
+        const movingRight = keys.d || keys.arrowright || touchInput.right
 
         if (movingLeft && !movingRight) {
           velocityX = -PLAYER_SPEED
@@ -147,7 +159,7 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
         }
 
         if (
-          (keys.w || keys.arrowup || keys[' ']) &&
+          (keys.w || keys.arrowup || keys[' '] || touchInput.jump) &&
           currentPlayer.isOnGround
         ) {
           velocityY = -JUMP_STRENGTH
@@ -238,6 +250,22 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
 
   function closePuzzle() {
     setActivePuzzleNpc(null)
+  }
+
+  function handleMobileInputChange(inputName, isPressed) {
+    const nextInput = {
+      ...mobileInputRef.current,
+      [inputName]: isPressed,
+    }
+
+    mobileInputRef.current = nextInput
+    setMobileInput(nextInput)
+  }
+
+  function handleMobileInteract() {
+    if (nearbyNpc && !dialogNpc && !activePuzzleNpc) {
+      setDialogNpc(nearbyNpc)
+    }
   }
 
   const cameraX = Math.max(
@@ -362,6 +390,13 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
           onSolved={solvePuzzle}
           onFail={failPuzzle}
           onClose={closePuzzle}
+        />
+      )}
+      {!dialogNpc && !activePuzzleNpc && (
+        <MobileControls
+          mobileInput={mobileInput}
+          onInputChange={handleMobileInputChange}
+          onInteract={handleMobileInteract}
         />
       )}
     </section>
