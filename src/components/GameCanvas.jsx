@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import backgroundImage from '../assets/background.png'
-import mainCharacterImg from '../assets/maincharacter_transparent.png'
+import mainCharacterFrontImg from '../assets/maincharacter_transparent.png'
+import mainCharacterLeftImg from '../assets/maincharacter_left_transparent.png'
+import mainCharacterRightImg from '../assets/maincharacter_right_transparent.png'
 import { correctValues } from '../data/values'
 import DialogBox from './DialogBox'
 import PuzzleModal from './PuzzleModal'
@@ -71,12 +73,12 @@ function getHorizontalDistance(player, entityPosition) {
 function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) {
   const keysRef = useRef({})
   const playerRef = useRef(createStartPosition())
-  const facingRef = useRef('right')
+  const directionRef = useRef('front')
   const frameRef = useRef(null)
   const ePressedRef = useRef(false)
 
   const [player, setPlayer] = useState(() => createStartPosition())
-  const [facing, setFacing] = useState('right')
+  const [direction, setDirection] = useState('front')
   const [nearbyNpc, setNearbyNpc] = useState(null)
   const [dialogNpc, setDialogNpc] = useState(null)
   const [activePuzzleNpc, setActivePuzzleNpc] = useState(null)
@@ -128,7 +130,7 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
       const groundY = getGroundY()
       let velocityX = 0
       let velocityY = currentPlayer.velocityY + GRAVITY
-      let nextFacing = facingRef.current
+      let nextDirection = directionRef.current
 
       if (!activePuzzleNpc && !dialogNpc) {
         const movingLeft = keys.a || keys.arrowleft
@@ -136,12 +138,12 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
 
         if (movingLeft && !movingRight) {
           velocityX = -PLAYER_SPEED
-          nextFacing = 'left'
+          nextDirection = 'left'
         }
 
         if (movingRight && !movingLeft) {
           velocityX = PLAYER_SPEED
-          nextFacing = 'right'
+          nextDirection = 'right'
         }
 
         if (
@@ -165,10 +167,8 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
       }
 
       let playerState = 'idle'
-      if (!isOnGround && velocityY < 0) {
+      if (velocityY !== 0) {
         playerState = 'jumping'
-      } else if (!isOnGround && velocityY >= 0) {
-        playerState = 'falling'
       } else if (velocityX !== 0) {
         playerState = 'running'
       }
@@ -185,9 +185,9 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
       playerRef.current = nextPlayer
       setPlayer(nextPlayer)
 
-      if (nextFacing !== facingRef.current) {
-        facingRef.current = nextFacing
-        setFacing(nextFacing)
+      if (nextDirection !== directionRef.current) {
+        directionRef.current = nextDirection
+        setDirection(nextDirection)
       }
 
       const nextNpc = NPCS.find((npc) => {
@@ -244,6 +244,20 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
     0,
     Math.min(MAP_WIDTH - window.innerWidth, player.x - window.innerWidth / 2),
   )
+  const playerSpriteState =
+    player.velocityY !== 0
+      ? 'jumping'
+      : player.velocityX !== 0
+        ? `running-${direction}`
+        : 'idle'
+  const currentPlayerSprite =
+    player.state === 'idle'
+      ? mainCharacterFrontImg
+      : direction === 'right'
+        ? mainCharacterRightImg
+        : direction === 'left'
+          ? mainCharacterLeftImg
+          : mainCharacterFrontImg
 
   return (
     <section
@@ -322,12 +336,9 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
         >
           <div className="player-shadow" />
           <img
-            src={mainCharacterImg}
+            src={currentPlayerSprite}
             alt="Nhân vật chính"
-            className="player-sprite character-sprite-clean"
-            style={{
-              '--player-facing-scale': facing === 'left' ? '-1' : '1',
-            }}
+            className={`player-sprite character-sprite-clean ${playerSpriteState}`}
           />
           </div>
       </div>
