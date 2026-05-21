@@ -9,12 +9,12 @@ function HUD({ hope, restoredThoughts, totalThoughts }) {
       </div>
 
       <p className="hud-count">
-        {restoredThoughts.length}/{totalThoughts} tư tưởng đúng
+        {restoredThoughts.length}/{totalThoughts} giá trị đã thấu hiểu
       </p>
 
       <ul className="restored-list">
         {restoredThoughts.map((thought) => (
-          <li key={thought.id}>{thought.title}</li>
+          <li key={thought.id}>{thought.valueName}</li>
         ))}
       </ul>
     </aside>

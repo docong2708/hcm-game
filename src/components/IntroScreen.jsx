@@ -4,7 +4,6 @@ const INTRO_LINES = [
   'Xã hội đang đánh mất những giá trị cốt lõi.',
   'Hãy trò chuyện với người dân để thu thập manh mối, phân biệt đâu là tư tưởng đúng đắn, đâu là tư tưởng lệch lạc.',
   'Khôi phục 5 giá trị đúng để đưa niềm tin trở lại.',
-  'Cẩn thận: Chỉ một lựa chọn sai cũng có thể khiến xã hội sụp đổ.',
 ]
 
 function IntroScreen({ onStart }) {

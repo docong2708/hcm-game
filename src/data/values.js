@@ -1,174 +1,78 @@
+import coGiaoLanImg from '../assets/cogiaolan_transparent.png'
+import congNhanMinhImg from '../assets/congnhanminh_transparent.png'
+import cuuChienBinhAnImg from '../assets/cuuchienbinhan_transparent.png'
+import nguoiBanHangImg from '../assets/nguoibanhang_transparent.png'
+import sinhVienNamImg from '../assets/sinhviennam_transparent.png'
+
 export const correctValues = [
   {
-    id: 'doc-lap-dan-toc',
-    type: 'correct',
-    title: 'Độc lập dân tộc',
-    hint: 'Một dân tộc phải có quyền tự quyết, tự do và không bị lệ thuộc.',
-    description:
-      'Độc lập dân tộc là quyền thiêng liêng, bất khả xâm phạm của các dân tộc.',
-    puzzle: {
-      story:
-        'Một cổng làng bị khóa bằng sợi xích cũ. Bên kia cổng, tiếng loa xa lạ đọc tên từng người như thể họ không còn được tự gọi tên mình.',
-      question: 'Giá trị nào giúp một dân tộc tự quyết định con đường của mình?',
-      answer: 'độc lập',
-      hints: [
-        'NPC nói về quyền tự quyết và không bị lệ thuộc.',
-        'Hãy nghĩ tới điều một dân tộc cần trước khi có thể tự xây dựng tương lai.',
-      ],
-    },
-  },
-  {
-    id: 'chu-nghia-xa-hoi',
-    type: 'correct',
-    title: 'Chủ nghĩa xã hội',
-    hint: 'Xã hội tốt đẹp phải hướng tới ấm no, tự do, hạnh phúc cho nhân dân.',
-    description: 'Độc lập dân tộc gắn liền với chủ nghĩa xã hội.',
-    puzzle: {
-      story:
-        'Trong sân khu tập thể, một bảng phân phối cũ còn ghi những phần thiếu. Người già, trẻ nhỏ và người lao động đều nhìn về cùng một nồi cơm nguội.',
-      question: 'Giá trị nào hướng xã hội tới ấm no, tự do, hạnh phúc cho nhân dân?',
-      answer: 'chủ nghĩa xã hội',
-      hints: [
-        'Không chỉ là độc lập, mà là đời sống tốt đẹp cho số đông.',
-        'NPC nhắc tới ấm no, tự do và hạnh phúc.',
-      ],
-    },
+    id: 'trung-thuc',
+    npcName: 'Cô giáo Lan',
+    npcImage: coGiaoLanImg,
+    valueName: 'Trung thực',
+    title: 'Trung thực',
+    story:
+      'Một học sinh đánh rơi bài kiểm tra đã được chấm điểm. Nếu giữ im lặng, em có thể dùng đáp án đó để đạt điểm cao hơn trong lần sửa bài.',
+    question: 'Điều gì nên được đặt lên hàng đầu trong tình huống này?',
+    choices: ['Lợi ích cá nhân', 'Trung thực', 'Im lặng để an toàn'],
+    correctAnswer: 'Trung thực',
+    consequence:
+      'Lớp học bớt nặng nề. Cô giáo Lan mỉm cười, và những tấm giấy cũ trên bảng tin không còn rung lên vì sợ hãi.',
   },
   {
     id: 'dai-doan-ket',
-    type: 'correct',
-    title: 'Đại đoàn kết toàn dân',
-    hint: 'Một người không thể tạo nên sức mạnh bằng cả cộng đồng.',
-    description:
-      'Đại đoàn kết toàn dân là sức mạnh to lớn của cách mạng Việt Nam.',
-    puzzle: {
-      story:
-        'Một cây cầu bị hỏng sau mưa. Một người có thể nâng một tấm ván, nhưng không thể giữ cả nhịp cầu cho khu phố đi qua.',
-      question: 'Giá trị nào giúp con người tạo nên sức mạnh chung?',
-      answer: 'đoàn kết',
-      hints: [
-        'Hãy nhớ lời NPC nói về sức mạnh cộng đồng.',
-        'Một cá nhân không thể thay thế cả tập thể.',
-      ],
-    },
+    npcName: 'Công nhân Minh',
+    npcImage: congNhanMinhImg,
+    valueName: 'Đại đoàn kết',
+    title: 'Đại đoàn kết',
+    story:
+      'Một đoạn đường vào khu dân cư bị sạt lở sau mưa. Minh cố gắng làm một mình, nhưng mỗi tấm ván nặng hơn sức của một người.',
+    question: 'Điều gì tạo nên sức mạnh để cả khu phố cùng vượt qua việc này?',
+    choices: ['Ai mạnh người ấy làm', 'Đại đoàn kết', 'Chờ một người giỏi nhất'],
+    correctAnswer: 'Đại đoàn kết',
+    consequence:
+      'Những cánh cửa mở ra. Người trong khu phố cùng bước ra, và con đường được nối lại bằng sức của nhiều bàn tay.',
   },
   {
-    id: 'dao-duc-cach-mang',
-    type: 'correct',
-    title: 'Đạo đức cách mạng',
-    hint: 'Người có lý tưởng phải biết sống cần, kiệm, liêm, chính, chí công vô tư.',
-    description: 'Đạo đức là gốc của người cách mạng.',
-    puzzle: {
-      story:
-        'Một chiếc ví rơi dưới chân sạp hàng. Bên trong có tiền thuốc, ảnh gia đình và một mảnh giấy ghi: "mai trả". Không ai đang nhìn bạn.',
-      question: 'Giá trị nào khiến con người làm điều đúng ngay cả khi im lặng bao quanh?',
-      answer: 'đạo đức',
-      hints: [
-        'NPC nhắc tới cần, kiệm, liêm, chính.',
-        'Điều đúng không cần khán giả mới trở thành điều đúng.',
-      ],
-    },
+    id: 'nhan-ai',
+    npcName: 'Người bán hàng Tư',
+    npcImage: nguoiBanHangImg,
+    valueName: 'Nhân ái',
+    title: 'Nhân ái',
+    story:
+      'Một người lao động quên ví tiền ở nhà, trong khi đứa trẻ đi cùng đang sốt. Nếu bán hàng đúng giá như cũ, bà Tư sẽ lãi hơn trong ngày vắng khách.',
+    question: 'Lựa chọn nào giữ lại tình người trong phiên chợ khó khăn?',
+    choices: ['Tăng giá vì có cơ hội', 'Nhân ái', 'Từ chối vì sợ thiệt'],
+    correctAnswer: 'Nhân ái',
+    consequence:
+      'Sạp hàng nhỏ ấm lên. Một người được giúp đúng lúc, và chợ vắng có lại tiếng người hỏi han nhau.',
   },
   {
-    id: 'con-nguoi',
-    type: 'correct',
-    title: 'Con người',
-    hint: 'Mục tiêu cuối cùng của xã hội là vì con người, do con người.',
-    description:
-      'Tư tưởng Hồ Chí Minh luôn đề cao vai trò, phẩm chất và sự phát triển của con người.',
-    puzzle: {
-      story:
-        'Đèn trạm xá tắt. Một người bị thương ngồi bên thềm, cố giấu tiếng thở đau sau tay áo. Con đường an toàn hơn nằm ở hướng ngược lại.',
-      question: 'Giá trị nào phải được đặt ở trung tâm của mọi lựa chọn?',
-      answer: 'con người',
-      hints: [
-        'NPC nói mục tiêu cuối cùng là vì ai.',
-        'Mọi lý tưởng trở nên rỗng nếu bỏ lại người đang đau.',
-      ],
-    },
-  },
-]
-
-export const wrongValues = [
-  {
-    id: 'song-le-thuoc',
-    type: 'wrong',
-    title: 'Sống lệ thuộc',
-    description: 'Chấp nhận mất quyền tự chủ, không cần độc lập.',
-    puzzle: {
-      story:
-        'Một tờ cam kết hứa hẹn sự yên ổn nếu cả khu phố thôi tự quyết. Dòng chữ cuối cùng để trống chỗ ký tên.',
-      question: 'Lối sống nào đánh đổi quyền tự chủ để lấy sự yên ổn giả tạo?',
-      answer: 'lệ thuộc',
-      hints: [
-        'Có những lời hứa làm con người nhỏ lại.',
-        'Từ khóa nằm trong nỗi sợ phải tự quyết.',
-      ],
-    },
+    id: 'trach-nhiem',
+    npcName: 'Sinh viên Nam',
+    npcImage: sinhVienNamImg,
+    valueName: 'Trách nhiệm',
+    title: 'Trách nhiệm',
+    story:
+      'Nam thấy một thông tin sai về khu phố lan truyền rất nhanh. Nếu chia sẻ tiếp, cậu sẽ được chú ý; nếu dừng lại kiểm chứng, cậu có thể bị bỏ qua.',
+    question: 'Người trẻ nên chọn điều gì trước khi làm một lời nói lan xa?',
+    choices: ['Trách nhiệm', 'Nói theo đám đông', 'Được chú ý bằng mọi giá'],
+    correctAnswer: 'Trách nhiệm',
+    consequence:
+      'Dòng tin đồn chậm lại. Nam hạ điện thoại xuống, và những cuộc nói chuyện bắt đầu có thêm sự cẩn trọng.',
   },
   {
-    id: 'ca-nhan-ich-ky',
-    type: 'wrong',
-    title: 'Mạnh ai nấy sống',
-    description: 'Đặt lợi ích cá nhân lên trên cộng đồng.',
-    puzzle: {
-      story:
-        'Một lối tắt chỉ đủ cho một người. Nếu bạn kéo cánh cổng lại sau lưng, những người còn lại sẽ mắc kẹt trong mưa.',
-      question: 'Lối nghĩ nào đặt phần mình lên trên tất cả?',
-      answer: 'ích kỷ',
-      hints: [
-        'Nó trái ngược với tinh thần cộng đồng.',
-        'Khi chỉ còn chữ tôi, khu phố mất tiếng chúng ta.',
-      ],
-    },
-  },
-  {
-    id: 'vo-cam',
-    type: 'wrong',
-    title: 'Vô cảm',
-    description: 'Không quan tâm đến nỗi đau và khó khăn của người khác.',
-    puzzle: {
-      story:
-        'Một tiếng gọi yếu ớt vang lên sau bức tường. Những người đi qua đều bước chậm lại, rồi giả vờ không nghe thấy.',
-      question: 'Thái độ nào khiến con người quay lưng trước nỗi đau của người khác?',
-      answer: 'vô cảm',
-      hints: [
-        'Nó bắt đầu khi ta thôi thấy người khác là người.',
-        'Sự im lặng đôi khi cũng là một lựa chọn.',
-      ],
-    },
-  },
-  {
-    id: 'thanh-cong-bang-moi-gia',
-    type: 'wrong',
-    title: 'Thành công bằng mọi giá',
-    description: 'Bất chấp đạo đức để đạt lợi ích cá nhân.',
-    puzzle: {
-      story:
-        'Một bản thành tích sáng bóng nằm trên chiếc bàn mục. Góc giấy che đi tên của những người bị gạt khỏi hàng.',
-      question: 'Lối nghĩ nào bất chấp đạo đức để đạt mục tiêu cá nhân?',
-      answer: 'thành công bằng mọi giá',
-      hints: [
-        'Nó dùng kết quả để che khuất cách đạt được kết quả.',
-        'Khi đạo đức bị bỏ lại, chiến thắng chỉ còn là vỏ rỗng.',
-      ],
-    },
-  },
-  {
-    id: 'lang-phi',
-    type: 'wrong',
-    title: 'Lãng phí',
-    description:
-      'Tiêu xài, sử dụng tài nguyên và công sức một cách vô trách nhiệm.',
-    puzzle: {
-      story:
-        'Kho nước chỉ còn vài can. Một vòi rỉ chảy suốt đêm dưới ánh đèn vẫn bật trong căn phòng không người.',
-      question: 'Thói quen nào làm hao mòn tài nguyên và công sức chung?',
-      answer: 'lãng phí',
-      hints: [
-        'Nó trái với cần kiệm.',
-        'Không phải mất đi trong một lần, mà rơi rụng từng chút không ai để ý.',
-      ],
-    },
+    id: 'doc-lap-tu-chu',
+    npcName: 'Cựu chiến binh An',
+    npcImage: cuuChienBinhAnImg,
+    valueName: 'Độc lập tự chủ',
+    title: 'Độc lập tự chủ',
+    story:
+      'Ở quảng trường cũ, bác An kể về một thời người dân phải nghe mệnh lệnh từ nơi khác. Sự yên ổn giả tạo đổi lấy quyền tự quyết của cả cộng đồng.',
+    question: 'Giá trị nào giúp một dân tộc tự quyết định con đường của mình?',
+    choices: ['Sống lệ thuộc', 'Độc lập tự chủ', 'Chấp nhận im lặng'],
+    correctAnswer: 'Độc lập tự chủ',
+    consequence:
+      'Lá cờ cũ không còn phải nằm trong bóng tối. Bác An đứng thẳng hơn, như vừa nghe lại tiếng bước chân của những ngày không khuất phục.',
   },
 ]

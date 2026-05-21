@@ -1,138 +1,85 @@
 import { useEffect, useRef, useState } from 'react'
 import backgroundImage from '../assets/background.png'
-import coGiaoLanImg from '../assets/cogiaolan_transparent.png'
-import congNhanMinhImg from '../assets/congnhanminh_transparent.png'
-import cuuChienBinhAnImg from '../assets/cuuchienbinhan_transparent.png'
 import mainCharacterImg from '../assets/maincharacter_transparent.png'
-import nguoiBanHangImg from '../assets/nguoibanhang_transparent.png'
-import sinhVienNamImg from '../assets/sinhviennam_transparent.png'
-import { correctValues, wrongValues } from '../data/values'
+import { correctValues } from '../data/values'
 import DialogBox from './DialogBox'
 import PuzzleModal from './PuzzleModal'
 
 const PLAYER_SIZE = 42
-const ORB_SIZE = 34
 const NPC_SIZE = 40
-const PLAYER_SPEED = 4
-const NPC_DIALOG_DISTANCE = 92
-const ORB_INTERACT_DISTANCE = 78
+const MAP_WIDTH = 2400
+const PLAYER_SPEED = 5
+const GRAVITY = 0.7
+const JUMP_STRENGTH = 10
+const INTERACT_DISTANCE_X = 80
 
-const START_POSITION = {
-  x: window.innerWidth / 2 - PLAYER_SIZE / 2,
-  y: window.innerHeight / 2 - PLAYER_SIZE / 2,
-  size: PLAYER_SIZE,
+function getGroundY() {
+  return window.innerHeight - 104
 }
 
-const CORRECT_VALUE_POSITIONS = [
-  { x: 12, y: 18 },
-  { x: 76, y: 22 },
-  { x: 18, y: 72 },
-  { x: 72, y: 68 },
-  { x: 48, y: 18 },
-]
+function createStartPosition() {
+  const groundY = getGroundY()
 
-const WRONG_VALUE_POSITIONS = [
-  { x: 88, y: 48 },
-  { x: 9, y: 48 },
-  { x: 35, y: 84 },
-  { x: 62, y: 84 },
-  { x: 51, y: 50 },
-]
-
-const ALL_ORB_POSITIONS = [...CORRECT_VALUE_POSITIONS, ...WRONG_VALUE_POSITIONS]
-
-function shuffleArray(items) {
-  const array = items.slice()
-  for (let i = array.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1))
-    const temp = array[i]
-    array[i] = array[j]
-    array[j] = temp
+  return {
+    x: 120,
+    y: groundY - PLAYER_SIZE,
+    velocityX: 0,
+    velocityY: 0,
+    state: 'idle',
+    isOnGround: true,
+    size: PLAYER_SIZE,
   }
-  return array
-}
-
-function createGameValues() {
-  const shuffledPositions = shuffleArray(ALL_ORB_POSITIONS)
-
-  return [
-    ...correctValues.map((value, index) => ({
-      ...value,
-      ...shuffledPositions[index],
-    })),
-    ...wrongValues.map((value, index) => ({
-      ...value,
-      ...shuffledPositions[correctValues.length + index],
-    })),
-  ]
 }
 
 const NPC_LAYOUT = [
-  { name: 'Cô giáo Lan', image: coGiaoLanImg, x: 30, y: 24 },
-  { name: 'Bác công nhân Minh', image: congNhanMinhImg, x: 66, y: 28 },
-  { name: 'Người bán hàng Tư', image: nguoiBanHangImg, x: 24, y: 62 },
-  { name: 'Sinh viên Nam', image: sinhVienNamImg, x: 70, y: 60 },
-  { name: 'Cựu chiến binh An', image: cuuChienBinhAnImg, x: 46, y: 30 },
-]
-
-const GAME_VALUES = [
-  ...correctValues.map((value, index) => ({
-    ...value,
-    type: 'correct',
-    ...CORRECT_VALUE_POSITIONS[index],
-  })),
-  ...wrongValues.map((value, index) => ({
-    ...value,
-    type: 'wrong',
-    ...WRONG_VALUE_POSITIONS[index],
-  })),
+  { x: 30, y: 24 },
+  { x: 66, y: 28 },
+  { x: 24, y: 62 },
+  { x: 70, y: 60 },
+  { x: 46, y: 30 },
 ]
 
 const NPCS = correctValues.map((value, index) => ({
-  id: `npc-${value.id}`,
-  hint: value.hint,
+  ...value,
+  id: value.id,
+  name: value.npcName,
+  image: value.npcImage,
   ...NPC_LAYOUT[index],
 }))
 
-function getMapPosition(entity, size = ORB_SIZE) {
+function getMapX(entity) {
+  return (MAP_WIDTH * entity.x) / 100
+}
+
+function getGroundedMapPosition(entity, size = NPC_SIZE, lift = 0) {
+  const groundY = getGroundY()
+
   return {
-    x: (window.innerWidth * entity.x) / 100,
-    y: (window.innerHeight * entity.y) / 100,
+    x: getMapX(entity),
+    y: groundY - size - lift,
     size,
   }
 }
 
-function isColliding(player, item) {
-  return (
-    player.x < item.x + item.size &&
-    player.x + player.size > item.x &&
-    player.y < item.y + item.size &&
-    player.y + player.size > item.y
-  )
-}
+function getHorizontalDistance(player, entityPosition) {
+  const playerCenterX = player.x + player.size / 2
+  const entityCenterX = entityPosition.x + entityPosition.size / 2
 
-function getDistance(first, second) {
-  const firstCenterX = first.x + first.size / 2
-  const firstCenterY = first.y + first.size / 2
-  const secondCenterX = second.x + second.size / 2
-  const secondCenterY = second.y + second.size / 2
-
-  return Math.hypot(firstCenterX - secondCenterX, firstCenterY - secondCenterY)
+  return Math.abs(playerCenterX - entityCenterX)
 }
 
 function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) {
   const keysRef = useRef({})
-  const playerRef = useRef(START_POSITION)
+  const playerRef = useRef(createStartPosition())
+  const facingRef = useRef('right')
   const frameRef = useRef(null)
   const ePressedRef = useRef(false)
-  const skippedOrbIdRef = useRef(null)
 
-  const [player, setPlayer] = useState(START_POSITION)
-  const [orbs, setOrbs] = useState(() => createGameValues())
+  const [player, setPlayer] = useState(() => createStartPosition())
+  const [facing, setFacing] = useState('right')
   const [nearbyNpc, setNearbyNpc] = useState(null)
-  const [nearbyOrb, setNearbyOrb] = useState(null)
   const [dialogNpc, setDialogNpc] = useState(null)
-  const [activeOrb, setActiveOrb] = useState(null)
+  const [activePuzzleNpc, setActivePuzzleNpc] = useState(null)
   const [popupMessage, setPopupMessage] = useState('')
 
   const hopeLevel = Math.min(4, Math.floor(hope / 25))
@@ -143,12 +90,14 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
       const key = event.key.toLowerCase()
       keysRef.current[key] = true
 
+      if (key === ' ' || key === 'arrowup') {
+        event.preventDefault()
+      }
+
       if (key === 'e' && !ePressedRef.current) {
         ePressedRef.current = true
-        if (nearbyOrb && !activeOrb) {
-          setActiveOrb(nearbyOrb)
-        } else {
-          setDialogNpc((currentNpc) => (currentNpc ? null : nearbyNpc))
+        if (nearbyNpc && !dialogNpc && !activePuzzleNpc) {
+          setDialogNpc(nearbyNpc)
         }
       }
     }
@@ -169,48 +118,85 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('keyup', handleKeyUp)
     }
-  }, [nearbyOrb, nearbyNpc, activeOrb])
+  }, [nearbyNpc, dialogNpc, activePuzzleNpc])
 
   useEffect(() => {
     function movePlayer() {
       const keys = keysRef.current
-      let nextX = playerRef.current.x
-      let nextY = playerRef.current.y
+      const currentPlayer = playerRef.current
+      const groundY = getGroundY()
+      let velocityX = 0
+      let velocityY = currentPlayer.velocityY + GRAVITY
+      let nextFacing = facingRef.current
 
-      // WASD va phim mui ten cung dieu khien nhan vat.
-      if (!activeOrb) {
-        if (keys.a || keys.arrowleft) nextX -= PLAYER_SPEED
-        if (keys.d || keys.arrowright) nextX += PLAYER_SPEED
-        if (keys.w || keys.arrowup) nextY -= PLAYER_SPEED
-        if (keys.s || keys.arrowdown) nextY += PLAYER_SPEED
+      if (!activePuzzleNpc && !dialogNpc) {
+        const movingLeft = keys.a || keys.arrowleft
+        const movingRight = keys.d || keys.arrowright
+
+        if (movingLeft && !movingRight) {
+          velocityX = -PLAYER_SPEED
+          nextFacing = 'left'
+        }
+
+        if (movingRight && !movingLeft) {
+          velocityX = PLAYER_SPEED
+          nextFacing = 'right'
+        }
+
+        if (
+          (keys.w || keys.arrowup || keys[' ']) &&
+          currentPlayer.isOnGround
+        ) {
+          velocityY = -JUMP_STRENGTH
+        }
       }
 
-      nextX = Math.max(0, Math.min(window.innerWidth - PLAYER_SIZE, nextX))
-      nextY = Math.max(0, Math.min(window.innerHeight - PLAYER_SIZE, nextY))
+      let nextX = currentPlayer.x + velocityX
+      let nextY = currentPlayer.y + velocityY
 
-      const nextPlayer = { x: nextX, y: nextY, size: PLAYER_SIZE }
+      nextX = Math.max(0, Math.min(MAP_WIDTH - PLAYER_SIZE, nextX))
+
+      let isOnGround = false
+      if (nextY >= groundY - PLAYER_SIZE) {
+        nextY = groundY - PLAYER_SIZE
+        velocityY = 0
+        isOnGround = true
+      }
+
+      let playerState = 'idle'
+      if (!isOnGround && velocityY < 0) {
+        playerState = 'jumping'
+      } else if (!isOnGround && velocityY >= 0) {
+        playerState = 'falling'
+      } else if (velocityX !== 0) {
+        playerState = 'running'
+      }
+
+      const nextPlayer = {
+        x: nextX,
+        y: nextY,
+        velocityX,
+        velocityY,
+        state: playerState,
+        isOnGround,
+        size: PLAYER_SIZE,
+      }
       playerRef.current = nextPlayer
       setPlayer(nextPlayer)
 
+      if (nextFacing !== facingRef.current) {
+        facingRef.current = nextFacing
+        setFacing(nextFacing)
+      }
+
       const nextNpc = NPCS.find((npc) => {
-        const npcPosition = getMapPosition(npc, NPC_SIZE)
-        return getDistance(nextPlayer, npcPosition) < NPC_DIALOG_DISTANCE
+        const npcPosition = getGroundedMapPosition(npc, NPC_SIZE)
+        return getHorizontalDistance(nextPlayer, npcPosition) < INTERACT_DISTANCE_X
       })
       setNearbyNpc(nextNpc ?? null)
 
       if (!nextNpc) {
         setDialogNpc(null)
-      }
-
-      const nearbyOrbCandidate = orbs.find((orb) => {
-        const orbPosition = getMapPosition(orb, ORB_SIZE)
-        return getDistance(nextPlayer, orbPosition) < ORB_INTERACT_DISTANCE
-      })
-
-      setNearbyOrb(nearbyOrbCandidate ?? null)
-
-      if (!nearbyOrbCandidate) {
-        skippedOrbIdRef.current = null
       }
 
       frameRef.current = requestAnimationFrame(movePlayer)
@@ -219,40 +205,43 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
     frameRef.current = requestAnimationFrame(movePlayer)
 
     return () => cancelAnimationFrame(frameRef.current)
-  }, [activeOrb, orbs])
+  }, [activePuzzleNpc, dialogNpc])
 
   function showPopup(message) {
     setPopupMessage(message)
     setTimeout(() => setPopupMessage(''), 1800)
   }
 
-  function solvePuzzle(value) {
-    if (!activeOrb) {
+  function handleDialogComplete(npc) {
+    setDialogNpc(null)
+
+    if (restoredValueIds.includes(npc.id)) {
+      showPopup(`${npc.valueName} đã được thắp sáng trong khu phố.`)
       return
     }
 
-    setOrbs((currentOrbs) =>
-      currentOrbs.filter((orb) => orb.id !== value.id),
-    )
+    setActivePuzzleNpc(npc)
+  }
+
+  function solvePuzzle(value) {
     onCorrectChoice(value)
-    showPopup('Niềm tin xã hội đã được khôi phục một phần...')
-    setActiveOrb(null)
+    showPopup(`Bạn đã hiểu được giá trị: ${value.valueName}`)
+    setActivePuzzleNpc(null)
   }
 
   function failPuzzle() {
     onWrongChoice()
-    showPopup('Một giá trị lệch lạc đã được giải mã.')
-    setActiveOrb(null)
+    setActivePuzzleNpc(null)
   }
 
   function closePuzzle() {
-    if (!activeOrb) {
-      return
-    }
-
-    skippedOrbIdRef.current = activeOrb.id
-    setActiveOrb(null)
+    setActivePuzzleNpc(null)
   }
+
+  const cameraX = Math.max(
+    0,
+    Math.min(MAP_WIDTH - window.innerWidth, player.x - window.innerWidth / 2),
+  )
 
   return (
     <section
@@ -262,85 +251,100 @@ function GameCanvas({ hope, onCorrectChoice, onWrongChoice, restoredValueIds }) 
     >
       <div className="film-grain" />
       <div className="dust-layer" />
-      <div className="road road-horizontal" />
-      <div className="road road-vertical" />
+      <div
+        className="side-scroll-world"
+        style={{
+          width: MAP_WIDTH,
+          transform: `translateX(${-cameraX}px)`,
+        }}
+      >
+        <div className="ground" />
+        <div className="road road-horizontal" />
+        <div className="road road-vertical" />
 
-      <div className="map-place school building building-a">
-        <span>Trường học</span>
-      </div>
-      <div className="map-place park building building-b">
-        <span>Công viên</span>
-        <i />
-        <i />
-        <i />
-      </div>
-      <div className="map-place neighborhood building building-c">
-        <span>Khu dân cư</span>
-      </div>
-      <div className="map-place square building building-d">
-        <span>Quảng trường</span>
-      </div>
-      <div className="propaganda-board neon-sign">Giữ lấy giá trị chung</div>
-      <div className="old-poster error-sign error-sign-a">Nếp sống văn minh</div>
-      <div className="old-poster error-sign error-sign-b">Vì cộng đồng</div>
-      <div className="loudspeaker glitch-panel glitch-panel-a" />
-      <div className="notice-wall glitch-panel glitch-panel-b">Bảng tin cũ</div>
+        <div className="map-place school building building-a">
+          <span>Trường học</span>
+        </div>
+        <div className="map-place park building building-b">
+          <span>Công viên</span>
+          <i />
+          <i />
+          <i />
+        </div>
+        <div className="map-place neighborhood building building-c">
+          <span>Khu dân cư</span>
+        </div>
+        <div className="map-place square building building-d">
+          <span>Quảng trường</span>
+        </div>
+        <div className="propaganda-board neon-sign">Giữ lấy giá trị chung</div>
+        <div className="old-poster error-sign error-sign-a">Nếp sống văn minh</div>
+        <div className="old-poster error-sign error-sign-b">Vì cộng đồng</div>
+        <div className="loudspeaker glitch-panel glitch-panel-a" />
+        <div className="notice-wall glitch-panel glitch-panel-b">Bảng tin cũ</div>
 
-      {NPCS.map((npc) => {
-        const npcPosition = getMapPosition(npc, NPC_SIZE)
-        const isNearby = nearbyNpc?.id === npc.id
+        {NPCS.map((npc) => {
+          const npcPosition = getGroundedMapPosition(npc, NPC_SIZE)
+          const isNearby = nearbyNpc?.id === npc.id
+          const isRestored = restoredValueIds.includes(npc.id)
 
-        return (
-          <div
-            className={`npc npc-${npcMood}`}
-            key={npc.id}
-            style={{ left: npcPosition.x, top: npcPosition.y }}
-          >
-            <div className="npc-shadow" />
-            <img
-              src={npc.image}
-              alt={npc.name}
-              className="npc-sprite character-sprite-clean"
-            />
-            <span className="npc-name">{npc.name}</span>
-            {isNearby && <span className="npc-hint-key">E</span>}
+          return (
+            <div
+              className={`npc npc-${isRestored ? 'hopeful' : npcMood}`}
+              key={npc.id}
+              style={{ left: npcPosition.x, top: npcPosition.y }}
+            >
+              <div className="npc-shadow" />
+              <img
+                src={npc.image}
+                alt={npc.name}
+                className="npc-sprite character-sprite-clean"
+              />
+              <span className="npc-name">{npc.name}</span>
+              {isNearby && (
+                <span className="npc-interact-prompt">
+                  Nhấn E để trò chuyện
+                </span>
+              )}
+            </div>
+          )
+        })}
+
+        <div
+          className={`player player-${player.state}`}
+          style={{
+            left: player.x,
+            top: player.y,
+          }}
+        >
+          <div className="player-shadow" />
+          <img
+            src={mainCharacterImg}
+            alt="Nhân vật chính"
+            className="player-sprite character-sprite-clean"
+            style={{
+              '--player-facing-scale': facing === 'left' ? '-1' : '1',
+            }}
+          />
           </div>
-        )
-      })}
+      </div>
 
-      {orbs.map((orb) => {
-        const orbPosition = getMapPosition(orb, ORB_SIZE)
-        const isNearbyOrb = nearbyOrb?.id === orb.id
-
-        return (
-          <div
-            className="value-item"
-            key={orb.id}
-            style={{ left: orbPosition.x, top: orbPosition.y }}
-          >
-            {isNearbyOrb && (
-              <span className="orb-interact-prompt">
-                Nhấn E để khám phá
-              </span>
-            )}
-          </div>
-        )
-      })}
-
-      <div className="player" style={{ left: player.x, top: player.y }}>
-        <div className="player-shadow" />
-        <img
-          src={mainCharacterImg}
-          alt="Nhân vật chính"
-          className="player-sprite character-sprite-clean"
+      {popupMessage && <div className="insight-popup">{popupMessage}</div>}
+      {dialogNpc && (
+        <DialogBox
+          npcName={dialogNpc.name}
+          lines={[
+            dialogNpc.story,
+            restoredValueIds.includes(dialogNpc.id)
+              ? dialogNpc.consequence
+              : 'Hãy lắng nghe điều đang bị đặt lên bàn cân.',
+          ]}
+          onComplete={() => handleDialogComplete(dialogNpc)}
         />
-      </div>
-
-      {popupMessage && <div className="collect-popup">{popupMessage}</div>}
-      {dialogNpc && <DialogBox npcName={dialogNpc.name} message={dialogNpc.hint} />}
-      {activeOrb && (
+      )}
+      {activePuzzleNpc && (
         <PuzzleModal
-          value={activeOrb}
+          value={activePuzzleNpc}
           onSolved={solvePuzzle}
           onFail={failPuzzle}
           onClose={closePuzzle}
