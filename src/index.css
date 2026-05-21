@@ -769,40 +769,70 @@ button:hover {
   line-height: 1.45;
 }
 
-.puzzle-choice-group {
+.puzzle-decode-panel {
   display: grid;
-  gap: 10px;
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.puzzle-choice {
-  display: grid;
-  grid-template-columns: 20px 1fr;
-  align-items: center;
-  gap: 10px;
-  min-height: 48px;
-  padding: 11px 12px;
-  border: 1px solid rgba(96, 66, 38, 0.28);
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(96, 66, 38, 0.24);
   border-radius: 6px;
-  color: #35281d;
-  background: rgba(255, 248, 225, 0.54);
-  line-height: 1.35;
-  cursor: pointer;
+  background:
+    linear-gradient(90deg, rgba(125, 36, 32, 0.08) 0 1px, transparent 1px),
+    rgba(255, 248, 225, 0.52);
+  background-size: 24px 100%, auto;
 }
 
-.puzzle-choice input {
-  width: 16px;
-  height: 16px;
-  accent-color: #7d2420;
+.puzzle-blank-line {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px dashed rgba(125, 36, 32, 0.34);
+  border-radius: 6px;
+  color: #7d2420;
+  background: rgba(255, 239, 190, 0.58);
+  font-family: "Courier New", monospace;
+  font-size: clamp(18px, 3.2vw, 28px);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1.45;
+  text-align: center;
+  word-break: break-word;
 }
 
-.puzzle-choice-selected {
+.puzzle-hint {
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 4px solid rgba(95, 107, 69, 0.72);
+  border-radius: 6px;
+  color: #463525;
+  background: rgba(240, 221, 186, 0.62);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.puzzle-input-label {
+  color: #5c3b22;
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.puzzle-decode-input {
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 14px;
+  border: 1px solid rgba(96, 66, 38, 0.36);
+  border-radius: 6px;
+  color: #30251b;
+  background: rgba(255, 252, 239, 0.88);
+  font: inherit;
+  font-size: 18px;
+  font-weight: 800;
+  outline: none;
+}
+
+.puzzle-decode-input:focus {
   border-color: rgba(125, 36, 32, 0.72);
-  background: rgba(255, 239, 190, 0.84);
-  box-shadow: 0 0 0 3px rgba(125, 36, 32, 0.12);
+  box-shadow: 0 0 0 3px rgba(125, 36, 32, 0.14);
 }
 
 .puzzle-message {
